@@ -1,0 +1,32 @@
+import RPi.GPIO as GPIO
+import time
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+GPIO.setup(12,GPIO.OUT)
+GPIO.setup(16,GPIO.OUT)
+
+# reset the LEDs to off!
+GPIO.output(12,GPIO.LOW)
+GPIO.output(16,GPIO.LOW)
+
+for count in range(0,40):
+    print ('count')
+    if count < 31:
+        print ("led A on")
+        GPIO.output(12,GPIO.HIGH)
+    else:
+          print ("led A off")
+          GPIO.output(12,GPIO.LOW)
+          
+    if count < 25:
+          print ("led B off")
+          GPIO.output(16,GPIO.LOW)
+    else:
+          print ("led B on")
+          GPIO.output(16,GPIO.HIGH)
+    time.sleep(1)
+print ("finished led A & B off")
+GPIO.cleanup()
+
+https://forums.raspberrypi.com/viewtopic.php?t=174924
