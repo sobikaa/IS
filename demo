@@ -1,0 +1,231 @@
+
+
+import MPR121
+from gpiozero import RGBLED
+import RPi.GPIO as GPIO
+import time
+import subprocess
+import pygame
+from pygame.mixer import Sound
+from glob import glob
+from time import sleep
+
+sensor = MPR121.begin()
+sensor.set_touch_threshold(20)
+sensor.set_release_threshold(10)
+
+led = RGBLED(6, 5, 26, active_high=False)
+
+#num_electrodes = 4
+
+# convert mp3s to wavs with picap-samples-to-wav
+led.blue = 1
+subprocess.call("picap-samples-to-wav tracks", shell=True)
+led.off()
+
+# initialize mixer and pygame
+#pygame.mixer.pre_init(frequency=44100, channels=64, buffer=1024)
+pygame.init()
+
+drum_sound = [Sound(path) for path in sorted(glob("drum_tracks/.wavs/TRACK*.wav"))]
+piano_sound = [Sound(path) for path in sorted(glob("piano_tracks/.wavs/TRACK*.wav"))]
+sounds = [Sound(path) for path in sorted(glob("tracks/.wavs/TRACK*.wav"))]
+animals = ["0", "1", "2", "3", "dog", "cat", "werewolf"]
+counter = 0
+
+
+    
+def increment():
+    
+    global counter
+    
+    if sensor.touch_status_changed():
+        sensor.update_touch_data()
+        
+        if sensor.is_new_touch(11):
+                # play sound associated with that touch               
+            counter += 1
+            print("count = " + str(counter))
+
+    
+def piano():
+    
+#     LED_PIN = 16
+# 
+#     GPIO.setmode(GPIO.BCM)
+#     GPIO.setup(LED_PIN, GPIO.OUT)
+# 
+#     GPIO.output(LED_PIN, GPIO.HIGH)
+    
+    if sensor.touch_status_changed():
+        sensor.update_touch_data()
+        
+
+        is_any_touch_registered = False
+
+        for i in range(0,4):
+            
+            if sensor.get_touch_data(i):
+                
+                # check if touch is registered to set the led status
+                is_any_touch_registered = True
+                #print("working")
+                
+            #if sensor.is_new_touch(i):
+                
+                # play sound associated with that touch
+                #print ("playing piano: " + str(i))
+                sound = piano_sound[i]
+                sound.play()
+
+        if sensor.get_touch_data(10):
+            is_any_touch_registered = True
+
+
+            piano_sound[1].play()
+               
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(16, GPIO.OUT)
+            GPIO.output(16, GPIO.HIGH)
+            time.sleep(2)
+            GPIO.output(16, GPIO.LOW)      
+            
+            piano_sound[5].play
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(24, GPIO.OUT)
+            GPIO.output(24, GPIO.HIGH)
+            time.sleep(2)
+            GPIO.output(24, GPIO.LOW)
+            
+            piano_sound[7].play
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(25, GPIO.OUT)
+            GPIO.output(25, GPIO.HIGH)
+            time.sleep(2)
+            GPIO.output(25, GPIO.LOW)
+            
+            
+            
+            
+        if is_any_touch_registered:
+            led.red = 1
+        else:
+            led.off()
+    
+    #GPIO.output(LED_PIN, GPIO.LOW)    
+  #  GPIO.cleanup()
+
+def drum():
+    
+#     LED_PIN = 24
+# 
+#     GPIO.setmode(GPIO.BCM)
+#     GPIO.setup(LED_PIN, GPIO.OUT)
+# 
+#     GPIO.output(LED_PIN, GPIO.HIGH)
+    
+    if sensor.touch_status_changed():
+        sensor.update_touch_data()
+        
+
+        is_any_touch_registered = False
+
+        for i in range(4):
+            
+            if sensor.get_touch_data(i):
+                
+                # check if touch is registered to set the led status
+                is_any_touch_registered = True
+                #print("working")
+                
+            #if sensor.is_new_touch(i):
+                
+                # play sound associated with that touch
+                #print ("playing drum: " + str(i))
+                drum = drum_sound[i]
+                drum.play()  
+
+        if sensor.get_touch_data(10):
+            is_any_touch_registered = True
+
+
+            drum_sound[1].play()
+               
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(16, GPIO.OUT)
+            GPIO.output(16, GPIO.HIGH)
+            time.sleep(2)
+            GPIO.output(16, GPIO.LOW)      
+            
+            drum_sound[5].play()
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(24, GPIO.OUT)
+            GPIO.output(24, GPIO.HIGH)
+            time.sleep(2)
+            GPIO.output(24, GPIO.LOW)
+            
+            drum_sound[7].play()
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(25, GPIO.OUT)
+            GPIO.output(25, GPIO.HIGH)
+            time.sleep(2)
+            GPIO.output(25, GPIO.LOW)
+         
+        
+        if is_any_touch_registered:
+            led.green = 1
+        else:
+            led.off()
+            
+    #GPIO.output(LED_PIN, GPIO.LOW)    
+  #  GPIO.cleanup()
+
+
+def animal_sound():
+  
+    if sensor.touch_status_changed():
+        sensor.update_touch_data()
+
+        is_any_touch_registered = False
+
+        for i in range(4,7):
+            if sensor.get_touch_data(i):
+                # check if touch is registered to set the led status
+                is_any_touch_registered = True
+            #if sensor.is_new_touch(11):
+                if sensor.is_new_touch(i):
+                # play sound associated with that touch
+                    print (animals[i] + "sound: " + str(i))
+                    sound = sounds[i]
+                    sound.play()
+ 
+        if is_any_touch_registered:
+            led.red = 1
+        else:
+            led.off()
+
+
+running = True
+while running:
+    try:
+        #drum()
+        #piano()
+        
+        
+        increment()               
+        if (counter == 1):
+            piano()
+        
+        if (counter == 2):
+            drum()
+            
+        if (counter == 3):
+            animal_sound()
+            
+#
+    except KeyboardInterrupt:
+        led.off()
+        running = False
+        sleep(0.01)
+
+
